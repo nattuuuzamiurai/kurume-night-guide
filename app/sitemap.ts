@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = "kurume-night-guide--kurume-night-guide.us-east4.hosted.app";
+const BASE_URL =
+  "https://kurume-night-guide--kurume-night-guide.us-east4.hosted.app";
 
 const GENRES = ["cabaret", "snack", "girlsbar"] as const;
 

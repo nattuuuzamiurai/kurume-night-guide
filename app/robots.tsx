@@ -10,6 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin", "/search"],
       },
     ],
-    sitemap: "https://YOUR_DOMAIN/sitemap.xml",
+    sitemap:
+      "https://kurume-night-guide--kurume-night-guide.us-east4.hosted.app/sitemap.xml",
   };
 }

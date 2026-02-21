@@ -49,14 +49,43 @@ export default async function GenrePage({
 }: {
   params: Promise<{ genre: string }>;
 }) {
+  const siteUrl = getSiteUrl();
   const { genre } = await params;
   if (!genre) return notFound();
+
+  const label = GENRE_LABEL[genre] ?? genre;
+  const canonicalUrl = `${siteUrl}/kurume/${genre}`;
+
+  // ✅ BreadcrumbList（パンくず）JSON-LD
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "久留米ナイトガイド",
+        item: `${siteUrl}/kurume`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: label,
+        item: canonicalUrl,
+      },
+    ],
+  };
 
   const stores = await getStoresByGenre(genre);
 
   return (
     <main className="mx-auto max-w-3xl p-4 space-y-4">
-      <h1 className="text-2xl font-bold">{genre}</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
+      <h1 className="text-2xl font-bold">{label}</h1>
 
       <ul className="space-y-2">
         {stores.map((s) => (

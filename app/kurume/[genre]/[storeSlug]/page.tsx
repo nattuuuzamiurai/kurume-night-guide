@@ -12,8 +12,14 @@ function getSiteUrl() {
       : undefined);
 
   if (!v) throw new Error("SITE_URL is missing in production environment");
-  return v.replace(/\/+$/, ""); // 末尾スラッシュ削除
+  return v.replace(/\/+$/, "");
 }
+
+const GENRE_LABEL: Record<string, string> = {
+  cabaret: "キャバクラ",
+  snack: "スナック",
+  girlsbar: "ガールズバー",
+};
 
 export async function generateMetadata({
   params,
@@ -33,6 +39,7 @@ export async function generateMetadata({
   }
 
   const canonicalUrl = `${siteUrl}/kurume/${store.genre}/${store.slug}`;
+
   const title = `${store.name}（${store.areaLabel}） | 久留米ナイトガイド`;
   const description = [
     `${store.name}の店舗情報（久留米 / ${store.genre}）`,
@@ -58,6 +65,7 @@ export default async function StorePage({
 }: {
   params: Promise<{ genre: string; storeSlug: string }>;
 }) {
+  const siteUrl = getSiteUrl();
   const { genre, storeSlug } = await params;
 
   if (!genre || !storeSlug) return notFound();
@@ -65,12 +73,71 @@ export default async function StorePage({
   const store = await getStoreBySlug(storeSlug);
   if (!store) return notFound();
 
-  // URLのgenreとDBのgenre不一致は404（事故防止）
   if (store.genre !== genre) return notFound();
+
+  const canonicalUrl = `${siteUrl}/kurume/${store.genre}/${store.slug}`;
+
+  // ✅ 事実情報だけで JSON-LD（LocalBusiness）
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": canonicalUrl,
+    name: store.name,
+    url: canonicalUrl,
+    address: store.address
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: store.address,
+          addressCountry: "JP",
+        }
+      : undefined,
+  };
+
+  // ✅ undefined を落として綺麗にする（任意だけどおすすめ）
+  const jsonLdClean = JSON.parse(
+    JSON.stringify(jsonLd, (_k, v) => (v === undefined ? undefined : v)),
+  );
+
+  const label = GENRE_LABEL[store.genre] ?? store.genre;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "久留米ナイトガイド",
+        item: `${siteUrl}/kurume`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: label,
+        item: `${siteUrl}/kurume/${store.genre}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: store.name,
+        item: canonicalUrl,
+      },
+    ],
+  };
 
   return (
     <main className="mx-auto max-w-3xl p-4 space-y-6">
       <header className="space-y-1">
+        {/* ① 店舗情報（LocalBusiness） */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdClean) }}
+        />
+        {/* ② パンくず（BreadcrumbList） */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
         <h1 className="text-2xl font-bold">{store.name}</h1>
         {store.isPR && <div className="text-xs text-gray-500">PR表記</div>}
         <div className="text-sm text-gray-600">{store.areaLabel}</div>

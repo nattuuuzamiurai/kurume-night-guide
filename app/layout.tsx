@@ -16,6 +16,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "久留米ナイトガイド",
   description: "久留米市の夜のお店をジャンル・エリア別に探せる地域特化ガイド",
+  metadataBase: new URL(
+    process.env.SITE_URL ??
+      (process.env.NODE_ENV === "development"
+        ? "http://localhost:3000"
+        : "https://kurume-night-guide--kurume-night-guide.us-east4.hosted.app"),
+  ),
 };
 
 export default function RootLayout({

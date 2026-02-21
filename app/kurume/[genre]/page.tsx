@@ -1,8 +1,48 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getStoresByGenre } from "@/lib/stores/getStoresByGenre";
+import type { Metadata } from "next";
 
 export const runtime = "nodejs";
+
+function getSiteUrl() {
+  const v =
+    process.env.SITE_URL ??
+    (process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : undefined);
+  if (!v) throw new Error("SITE_URL is missing in production environment");
+  return v.replace(/\/+$/, "");
+}
+
+const GENRE_LABEL: Record<string, string> = {
+  cabaret: "キャバクラ",
+  snack: "スナック",
+  girlsbar: "ガールズバー",
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ genre: string }>;
+}): Promise<Metadata> {
+  const siteUrl = getSiteUrl();
+  const { genre } = await params;
+  if (!genre) return { robots: { index: false, follow: false } };
+
+  const label = GENRE_LABEL[genre] ?? genre;
+
+  const title = `久留米の${label}一覧 | 久留米ナイトガイド`;
+  const description = `久留米の${label}の店舗情報一覧。営業時間・料金目安・支払い方法など、確認済みの基本情報を掲載。`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${siteUrl}/kurume/${genre}`,
+    },
+  };
+}
 
 export default async function GenrePage({
   params,

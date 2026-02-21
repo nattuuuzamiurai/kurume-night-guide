@@ -32,6 +32,7 @@ export async function generateMetadata({
     };
   }
 
+  const canonicalUrl = `${siteUrl}/kurume/${store.genre}/${store.slug}`;
   const title = `${store.name}（${store.areaLabel}） | 久留米ナイトガイド`;
   const description = [
     `${store.name}の店舗情報（久留米 / ${store.genre}）`,
@@ -48,9 +49,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical: `${siteUrl}/kurume/${store.genre}/${store.slug}`,
-    },
+    alternates: { canonical: canonicalUrl },
   };
 }
 
